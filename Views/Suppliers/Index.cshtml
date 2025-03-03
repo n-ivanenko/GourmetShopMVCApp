@@ -1,0 +1,40 @@
+﻿@model IEnumerable<GourmetShopMVCApp.Models.Supplier>
+
+<h2>Suppliers</h2>
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Company Name</th>
+            <th>Contact Name</th>
+            <th>Contact Title</th>
+            <th>Phone</th>
+            <th>Fax</th>
+            <th>City</th>
+            <th>Country</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var supplier in Model)
+        {
+            <tr>
+                <td>@supplier.CompanyName</td>
+                <td>@supplier.ContactName</td>
+                <td>@supplier.ContactTitle</td>
+                <td>@supplier.Phone</td>
+                <td>@supplier.Fax</td>
+                <td>@supplier.City</td>
+                <td>@supplier.Country</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@supplier.Id">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@supplier.Id">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@supplier.Id">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
