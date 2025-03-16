@@ -1,4 +1,5 @@
 using GourmetShopMVCApp.Models;
+using GourmetShopMVCApp.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,6 +8,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<GourmetShopContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("GourmetShopDb")));
 builder.Services.AddControllersWithViews();
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
 
 var app = builder.Build();
 

@@ -1,81 +1,38 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using GourmetShopMVCApp.Models;
+﻿using GourmetShopMVCApp.Models;
+using GourmetShopMVCApp.Repositories;
+using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace GourmetShopMVCApp.Controllers
 {
     public class SuppliersController : Controller
     {
-        private readonly GourmetShopContext _context;
+        private readonly ISupplierRepository _supplierRepository;
 
-        public SuppliersController(GourmetShopContext context)
+        // Inject the repository through the constructor
+        public SuppliersController(ISupplierRepository supplierRepository)
         {
-            _context = context;
+            _supplierRepository = supplierRepository;
         }
 
-        /// GET: Suppliers
+        // GET: Suppliers
         public async Task<IActionResult> Index()
         {
-            try
-            {
-                var suppliers = await _context.Suppliers.ToListAsync();
-
-                // Handle null values explicitly
-                foreach (var supplier in suppliers)
-                {
-                    // Safely replace null values with defaults
-                    supplier.ContactName = supplier.ContactName;
-                    supplier.ContactTitle = supplier.ContactTitle;
-                    supplier.Phone = supplier.Phone;
-                    supplier.Fax = supplier.Fax;
-                    supplier.City = supplier.City;
-                    supplier.Country = supplier.Country;
-                }
-
-                return View(suppliers);
-            }
-            catch (Exception ex)
-            {
-                // Log the exception or return an error message
-                Console.WriteLine($"Error: {ex.Message}");
-                return View("Error");
-            }
+            var suppliers = await _supplierRepository.GetAllSuppliersAsync();
+            return View(suppliers);
         }
 
-
-
-
         // GET: Suppliers/Details/5
-        public async Task<IActionResult> Details(int? id)
+        public async Task<IActionResult> Details(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var supplier = await _context.Suppliers
-                .FirstOrDefaultAsync(m => m.Id == id);
-
+            var supplier = await _supplierRepository.GetSupplierByIdAsync(id);
             if (supplier == null)
             {
                 return NotFound();
             }
 
-            // Null handling: Ensure the properties are not null before accessing them
-            if (supplier.ContactName == null)
-            {
-                supplier.ContactName = "No Contact Name Provided";
-            }
-
-            if (supplier.Phone == null)
-            {
-                supplier.Phone = "No Phone Provided";
-            }
-
-            // Return the view with the supplier model
             return View(supplier);
         }
-
 
         // GET: Suppliers/Create
         public IActionResult Create()
@@ -90,23 +47,16 @@ namespace GourmetShopMVCApp.Controllers
         {
             if (ModelState.IsValid)
             {
-                _context.Add(supplier);
-                await _context.SaveChangesAsync();
+                await _supplierRepository.AddSupplierAsync(supplier);
                 return RedirectToAction(nameof(Index));
             }
             return View(supplier);
         }
 
-
         // GET: Suppliers/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var supplier = await _context.Suppliers.FindAsync(id);
+            var supplier = await _supplierRepository.GetSupplierByIdAsync(id);
             if (supplier == null)
             {
                 return NotFound();
@@ -126,37 +76,16 @@ namespace GourmetShopMVCApp.Controllers
 
             if (ModelState.IsValid)
             {
-                try
-                {
-                    _context.Update(supplier);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!SupplierExists(supplier.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
+                await _supplierRepository.UpdateSupplierAsync(supplier);
                 return RedirectToAction(nameof(Index));
             }
             return View(supplier);
         }
 
         // GET: Suppliers/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        public async Task<IActionResult> Delete(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var supplier = await _context.Suppliers
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var supplier = await _supplierRepository.GetSupplierByIdAsync(id);
             if (supplier == null)
             {
                 return NotFound();
@@ -170,15 +99,8 @@ namespace GourmetShopMVCApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var supplier = await _context.Suppliers.FindAsync(id);
-            _context.Suppliers.Remove(supplier);
-            await _context.SaveChangesAsync();
+            await _supplierRepository.DeleteSupplierAsync(id);
             return RedirectToAction(nameof(Index));
-        }
-
-        private bool SupplierExists(int id)
-        {
-            return _context.Suppliers.Any(e => e.Id == id);
         }
     }
 }
