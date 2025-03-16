@@ -1,6 +1,7 @@
 ﻿using GourmetShopMVCApp.Models;
 using GourmetShopMVCApp.Repositories;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Threading.Tasks;
 
 namespace GourmetShopMVCApp.Controllers
@@ -8,10 +9,12 @@ namespace GourmetShopMVCApp.Controllers
     public class ProductsController : Controller
     {
         private readonly IProductRepository _productRepository;
+        private readonly ISupplierRepository _supplierRepository;
 
-        public ProductsController(IProductRepository productRepository)
+        public ProductsController(IProductRepository productRepository, ISupplierRepository supplierRepository)
         {
             _productRepository = productRepository;
+            _supplierRepository = supplierRepository;
         }
 
         // Index: Get all products
@@ -32,22 +35,29 @@ namespace GourmetShopMVCApp.Controllers
             return View(product);
         }
 
-        // Create: Show the create form
-        public IActionResult Create()
+        [HttpGet]
+        public async Task<IActionResult> Create()
         {
+            var suppliers = await _supplierRepository.GetAllSuppliersAsync();
+           
+            ViewData["Suppliers"] = new SelectList(suppliers, "Id", "CompanyName");
+
             return View();
         }
 
-        // Create: Post to create a new product
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Product product)
+        public async Task<IActionResult> Create([Bind("ProductName, SupplierId, UnitPrice")] Product product)
         {
             if (ModelState.IsValid)
             {
                 await _productRepository.AddAsync(product);
                 return RedirectToAction(nameof(Index));
             }
+
+            var suppliers = await _supplierRepository.GetAllSuppliersAsync();
+            ViewData["Suppliers"] = new SelectList(suppliers, "Id", "CompanyName", product.SupplierId);
+
             return View(product);
         }
 
@@ -59,6 +69,9 @@ namespace GourmetShopMVCApp.Controllers
             {
                 return NotFound();
             }
+            var suppliers = await _supplierRepository.GetAllSuppliersAsync();
+
+            ViewData["Suppliers"] = new SelectList(suppliers, "Id", "CompanyName", product.SupplierId);
             return View(product);
         }
 

@@ -17,7 +17,11 @@ namespace GourmetShopMVCApp.Repositories
         // Get all products
         public async Task<IEnumerable<Product>> GetAllAsync()
         {
-            return await _context.Products.Include(p => p.Supplier).ToListAsync();
+            {
+                return await _context.Products
+                                     .Include(p => p.Supplier)
+                                     .ToListAsync(); 
+            }
         }
 
         // Get a product by ID

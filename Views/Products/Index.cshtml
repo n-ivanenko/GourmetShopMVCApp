@@ -2,30 +2,29 @@
 
 <h1>Products</h1>
 <p>
-    <a asp-action="Create">Create New Product</a>
+    <a asp-action="Create">Create New</a>
 </p>
+
 <table class="table">
     <thead>
         <tr>
-            <th>@Html.DisplayNameFor(model => model.ProductName)</th>
-            <th>@Html.DisplayNameFor(model => model.UnitPrice)</th>
-            <th>@Html.DisplayNameFor(model => model.Package)</th>
-            <th>@Html.DisplayNameFor(model => model.IsDiscontinued)</th>
-            <th></th>
+            <th>Product Name</th>
+            <th>Unit Price</th>
+            <th>Supplier</th> 
+            <th>Actions</th>
         </tr>
     </thead>
     <tbody>
-        @foreach (var item in Model)
+        @foreach (var product in Model)
         {
             <tr>
-                <td>@Html.DisplayFor(modelItem => item.ProductName)</td>
-                <td>@Html.DisplayFor(modelItem => item.UnitPrice)</td>
-                <td>@Html.DisplayFor(modelItem => item.Package)</td>
-                <td>@Html.DisplayFor(modelItem => item.IsDiscontinued)</td>
+                <td>@product.ProductName</td>
+                <td>@product.UnitPrice</td>
+                <td>@product.Supplier?.CompanyName</td>
                 <td>
-                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                    <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                    <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                    <a asp-action="Edit" asp-route-id="@product.Id">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@product.Id">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@product.Id">Delete</a>
                 </td>
             </tr>
         }
