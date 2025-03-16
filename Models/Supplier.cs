@@ -11,7 +11,8 @@ namespace GourmetShopMVCApp.Models
         public string? Country { get; set; }
         public string? Phone { get; set; }
         public string ?Fax { get; set; }
-        public ICollection<Product> Products { get; set; }
+
+        public ICollection<Product> ?Products { get; set; }
     }
 }
 

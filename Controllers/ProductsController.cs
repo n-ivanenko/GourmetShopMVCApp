@@ -1,5 +1,6 @@
 ﻿using GourmetShopMVCApp.Models;
 using GourmetShopMVCApp.Repositories;
+using GourmetShopMVCApp.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Threading.Tasks;
@@ -10,21 +11,28 @@ namespace GourmetShopMVCApp.Controllers
     {
         private readonly IProductRepository _productRepository;
         private readonly ISupplierRepository _supplierRepository;
+        private readonly ICategoryRepository _categoryRepository;
 
-        public ProductsController(IProductRepository productRepository, ISupplierRepository supplierRepository)
+        public ProductsController(IProductRepository productRepository, ISupplierRepository supplierRepository, ICategoryRepository categoryRepository)
         {
             _productRepository = productRepository;
             _supplierRepository = supplierRepository;
+            _categoryRepository = categoryRepository;
         }
 
-        // Index: Get all products
+        // GET Products
         public async Task<IActionResult> Index()
         {
             var products = await _productRepository.GetAllAsync();
-            return View(products);
+            var viewModel = new ProductSearchViewModel
+            {
+                SearchTerm = "", 
+                Products = products
+            };
+            return View(viewModel);
         }
 
-        // Details: Get a product by id
+        // GET Details
         public async Task<IActionResult> Details(int id)
         {
             var product = await _productRepository.GetByIdAsync(id);
@@ -35,19 +43,23 @@ namespace GourmetShopMVCApp.Controllers
             return View(product);
         }
 
+        // GET Create
         [HttpGet]
         public async Task<IActionResult> Create()
         {
             var suppliers = await _supplierRepository.GetAllSuppliersAsync();
-           
-            ViewData["Suppliers"] = new SelectList(suppliers, "Id", "CompanyName");
+            var categories = await _categoryRepository.GetAllAsync();
+
+            ViewBag.SupplierId = new SelectList(suppliers, "Id", "CompanyName");
+            ViewBag.CategoryId = new SelectList(categories, "Id", "CategoryName");
 
             return View();
         }
 
+        // POST Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ProductName, SupplierId, UnitPrice")] Product product)
+        public async Task<IActionResult> Create([Bind("ProductName, SupplierId, UnitPrice, Package, IsDiscontinued, CategoryId")] Product product)
         {
             if (ModelState.IsValid)
             {
@@ -56,12 +68,15 @@ namespace GourmetShopMVCApp.Controllers
             }
 
             var suppliers = await _supplierRepository.GetAllSuppliersAsync();
-            ViewData["Suppliers"] = new SelectList(suppliers, "Id", "CompanyName", product.SupplierId);
+            var categories = await _categoryRepository.GetAllAsync();
 
-            return View(product);
+            ViewData["Suppliers"] = new SelectList(suppliers, "Id", "CompanyName", product.SupplierId);
+            ViewData["Categories"] = new SelectList(categories, "Id", "CategoryName", product.CategoryId);
+
+            return RedirectToAction("Index");
         }
 
-        // Edit: Show the edit form
+        // GET Edit
         public async Task<IActionResult> Edit(int id)
         {
             var product = await _productRepository.GetByIdAsync(id);
@@ -70,30 +85,35 @@ namespace GourmetShopMVCApp.Controllers
                 return NotFound();
             }
             var suppliers = await _supplierRepository.GetAllSuppliersAsync();
+            var categories = await _categoryRepository.GetAllAsync();
 
             ViewData["Suppliers"] = new SelectList(suppliers, "Id", "CompanyName", product.SupplierId);
-            return View(product);
+            ViewData["Categories"] = new SelectList(categories, "Id", "CategoryName", product.CategoryId);
+
+            return View();
         }
 
-        // Edit: Post to update a product
+        // POST Edit
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Product product)
+        public async Task<IActionResult> Edit(int id, [Bind("Id, ProductName, SupplierId, UnitPrice, CategoryId")] Product product)
         {
-            if (id != product.Id)
-            {
-                return NotFound();
-            }
-
             if (ModelState.IsValid)
             {
                 await _productRepository.UpdateAsync(product);
                 return RedirectToAction(nameof(Index));
             }
-            return View(product);
+
+            var suppliers = await _supplierRepository.GetAllSuppliersAsync();
+            var categories = await _categoryRepository.GetAllAsync();
+
+            ViewData["Suppliers"] = new SelectList(suppliers, "Id", "CompanyName", product.SupplierId);
+            ViewData["Categories"] = new SelectList(categories, "Id", "CategoryName", product.CategoryId);
+
+            return RedirectToAction("Index");
         }
 
-        // Delete: Show the delete confirmation
+        // GET Delete
         public async Task<IActionResult> Delete(int id)
         {
             var product = await _productRepository.GetByIdAsync(id);
@@ -104,7 +124,7 @@ namespace GourmetShopMVCApp.Controllers
             return View(product);
         }
 
-        // Delete: Post to delete a product
+        // POST Delete
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -112,5 +132,50 @@ namespace GourmetShopMVCApp.Controllers
             await _productRepository.DeleteAsync(id);
             return RedirectToAction(nameof(Index));
         }
+
+        public IActionResult CreateCategory(int productId)
+        {
+            var product = _productRepository.GetByIdAsync(productId).Result;
+
+            ViewData["ProductName"] = product?.ProductName;
+
+            return View();
+        }
+
+        // POST Category
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateCategory(int productId, Category category)
+        {
+            if (ModelState.IsValid)
+            {
+                await _categoryRepository.AddAsync(category);
+                var product = await _productRepository.GetByIdAsync(productId);
+
+                if (product != null)
+                {
+                    product.CategoryId = category.Id;
+                    await _productRepository.UpdateAsync(product);
+                }
+
+                return RedirectToAction("Index");
+            }
+
+            return View(category);
+        }
+
+        // POST Search
+        [HttpPost]
+        public async Task<IActionResult> Search(string searchTerm)
+        {
+            var products = await _productRepository.SearchAsync(searchTerm);
+            var viewModel = new ProductSearchViewModel
+            {
+                SearchTerm = searchTerm,
+                Products = products
+            };
+            return View("Index", viewModel);
+        }
     }
 }
+

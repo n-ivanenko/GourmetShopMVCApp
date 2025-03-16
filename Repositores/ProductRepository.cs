@@ -18,9 +18,7 @@ namespace GourmetShopMVCApp.Repositories
         public async Task<IEnumerable<Product>> GetAllAsync()
         {
             {
-                return await _context.Products
-                                     .Include(p => p.Supplier)
-                                     .ToListAsync(); 
+                return await _context.Products.Include(p => p.Supplier).ToListAsync();
             }
         }
 
@@ -53,6 +51,18 @@ namespace GourmetShopMVCApp.Repositories
                 _context.Products.Remove(product);
                 await _context.SaveChangesAsync();
             }
+        }
+        // Search for Product by ProductName
+        public async Task<IEnumerable<Product>> SearchAsync(string searchTerm)
+        {
+            if (string.IsNullOrWhiteSpace(searchTerm))
+            {
+                return await GetAllAsync(); 
+            }
+
+            return await _context.Products
+           .Where(p => p.ProductName.Contains(searchTerm)) 
+           .ToListAsync();
         }
     }
 }

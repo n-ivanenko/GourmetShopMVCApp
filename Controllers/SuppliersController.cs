@@ -1,5 +1,6 @@
 ﻿using GourmetShopMVCApp.Models;
 using GourmetShopMVCApp.Repositories;
+using GourmetShopMVCApp.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 
@@ -9,20 +10,24 @@ namespace GourmetShopMVCApp.Controllers
     {
         private readonly ISupplierRepository _supplierRepository;
 
-        // Inject the repository through the constructor
         public SuppliersController(ISupplierRepository supplierRepository)
         {
             _supplierRepository = supplierRepository;
         }
 
-        // GET: Suppliers
+        // GET Suppliers
         public async Task<IActionResult> Index()
         {
             var suppliers = await _supplierRepository.GetAllSuppliersAsync();
-            return View(suppliers);
+            var viewModel = new SupplierSearchViewModel
+            {
+                SearchTerm = "",
+                Suppliers = suppliers
+            };
+            return View(viewModel);
         }
 
-        // GET: Suppliers/Details/5
+        // GET Details
         public async Task<IActionResult> Details(int id)
         {
             var supplier = await _supplierRepository.GetSupplierByIdAsync(id);
@@ -34,13 +39,13 @@ namespace GourmetShopMVCApp.Controllers
             return View(supplier);
         }
 
-        // GET: Suppliers/Create
+        // GET Create
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: Suppliers/Create
+        // POST Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("CompanyName,ContactName,ContactTitle,City,Country,Phone,Fax")] Supplier supplier)
@@ -53,7 +58,7 @@ namespace GourmetShopMVCApp.Controllers
             return View(supplier);
         }
 
-        // GET: Suppliers/Edit/5
+        // GET Edit
         public async Task<IActionResult> Edit(int id)
         {
             var supplier = await _supplierRepository.GetSupplierByIdAsync(id);
@@ -64,7 +69,7 @@ namespace GourmetShopMVCApp.Controllers
             return View(supplier);
         }
 
-        // POST: Suppliers/Edit/5
+        // POST Edit
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,CompanyName,ContactName,ContactTitle,City,Country,Phone,Fax")] Supplier supplier)
@@ -82,7 +87,7 @@ namespace GourmetShopMVCApp.Controllers
             return View(supplier);
         }
 
-        // GET: Suppliers/Delete/5
+        // GET Delete
         public async Task<IActionResult> Delete(int id)
         {
             var supplier = await _supplierRepository.GetSupplierByIdAsync(id);
@@ -94,13 +99,26 @@ namespace GourmetShopMVCApp.Controllers
             return View(supplier);
         }
 
-        // POST: Suppliers/Delete/5
+        // POST Delete
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             await _supplierRepository.DeleteSupplierAsync(id);
             return RedirectToAction(nameof(Index));
+        }
+
+        // POST Search
+        [HttpPost]
+        public async Task<IActionResult> Search(string searchTerm)
+        {
+            var suppliers = await _supplierRepository.SearchAsync(searchTerm);
+            var viewModel = new SupplierSearchViewModel
+            {
+                SearchTerm = searchTerm,
+                Suppliers = suppliers
+            };
+            return View("Index", viewModel);
         }
     }
 }

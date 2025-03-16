@@ -1,5 +1,7 @@
 using System.Diagnostics;
 using GourmetShopMVCApp.Models;
+using GourmetShopMVCApp.ViewModels;
+using GourmetShopMVCApp.Repositories;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GourmetShopMVCApp.Controllers
@@ -11,8 +13,8 @@ namespace GourmetShopMVCApp.Controllers
         public HomeController(ILogger<HomeController> logger)
         {
             _logger = logger;
+           
         }
-
         public IActionResult Index()
         {
             return View();
