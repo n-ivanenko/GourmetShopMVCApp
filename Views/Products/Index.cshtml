@@ -2,19 +2,16 @@
 
 <h1>Products</h1>
 <p>
-    <a asp-action="Create">Create New</a>
+    <a asp-action="Create">Create New Product</a> |
+    <a asp-action="CreateCategory">Create New Category</a>
 </p>
-<form method="post" asp-action="Search">
-    <input type="text" name="searchTerm" placeholder="Search Products" value="@Model.SearchTerm" />
-    <button type="submit">Search</button>
-</form>
 
 <table class="table">
     <thead>
         <tr>
             <th>Product Name</th>
             <th>Unit Price</th>
-            <th>Supplier</th> 
+            <th>Supplier</th>
             <th>Category</th>
             <th>Actions</th>
         </tr>
@@ -30,8 +27,7 @@
                 <td>
                     <a asp-action="Edit" asp-route-id="@product.Id">Edit</a> |
                     <a asp-action="Details" asp-route-id="@product.Id">Details</a> |
-                    <a asp-action="Delete" asp-route-id="@product.Id">Delete</a> |
-                    <a asp-action="CreateCategory"asp-route-productId="@product.Id">Create Category</a>
+                    <a asp-action="Delete" asp-route-id="@product.Id">Delete</a>
                 </td>
             </tr>
         }

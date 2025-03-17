@@ -23,12 +23,14 @@ namespace GourmetShopMVCApp.Controllers
         // GET Products
         public async Task<IActionResult> Index()
         {
-            var products = await _productRepository.GetAllAsync();
+            var products = await _productRepository.GetAllAsync(); 
+            var categories = await _categoryRepository.GetAllAsync(); 
             var viewModel = new ProductSearchViewModel
             {
                 SearchTerm = "", 
                 Products = products
             };
+            ViewData["Categories"] = new SelectList(categories, "Id", "CategoryName");
             return View(viewModel);
         }
 
@@ -50,8 +52,8 @@ namespace GourmetShopMVCApp.Controllers
             var suppliers = await _supplierRepository.GetAllSuppliersAsync();
             var categories = await _categoryRepository.GetAllAsync();
 
-            ViewBag.SupplierId = new SelectList(suppliers, "Id", "CompanyName");
-            ViewBag.CategoryId = new SelectList(categories, "Id", "CategoryName");
+            ViewData["Suppliers"] = new SelectList(suppliers, "Id", "CompanyName");
+            ViewData["Categories"] = new SelectList(categories, "Id", "CategoryName");
 
             return View();
         }
@@ -73,7 +75,7 @@ namespace GourmetShopMVCApp.Controllers
             ViewData["Suppliers"] = new SelectList(suppliers, "Id", "CompanyName", product.SupplierId);
             ViewData["Categories"] = new SelectList(categories, "Id", "CategoryName", product.CategoryId);
 
-            return RedirectToAction("Index");
+            return View(product);
         }
 
         // GET Edit
@@ -89,8 +91,9 @@ namespace GourmetShopMVCApp.Controllers
 
             ViewData["Suppliers"] = new SelectList(suppliers, "Id", "CompanyName", product.SupplierId);
             ViewData["Categories"] = new SelectList(categories, "Id", "CategoryName", product.CategoryId);
+            ViewData["Title"] = "Edit Product";
 
-            return View();
+            return View(product);
         }
 
         // POST Edit
@@ -133,6 +136,7 @@ namespace GourmetShopMVCApp.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        // GET Create Category
         public IActionResult CreateCategory(int productId)
         {
             var product = _productRepository.GetByIdAsync(productId).Result;
@@ -142,22 +146,14 @@ namespace GourmetShopMVCApp.Controllers
             return View();
         }
 
-        // POST Category
+        // POST Create Category
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateCategory(int productId, Category category)
+        public async Task<IActionResult> CreateCategory(Category category)
         {
             if (ModelState.IsValid)
             {
                 await _categoryRepository.AddAsync(category);
-                var product = await _productRepository.GetByIdAsync(productId);
-
-                if (product != null)
-                {
-                    product.CategoryId = category.Id;
-                    await _productRepository.UpdateAsync(product);
-                }
-
                 return RedirectToAction("Index");
             }
 
